@@ -86,7 +86,7 @@ const insertDucatTransaction = (conn: Connection, ducatTable: Table) =>
       .then(result => [ data, result ] as [ ICrossExchangeTransfer, WriteResult ])
 
 const logResult = ([ data, result ]: [ ICrossExchangeTransfer, WriteResult ]) =>
-  console.log(result.first_error || `${data.blockchainFrom} > ${data.blockchainTo} tx ${data.tx} was saved`)
+  console.log(result.first_error || `${data.blockchainFrom} > ${data.blockchainTo} tx ${data.tx} saved successfully`)
 
 export default (web3: Web3, r: typeof rethinkdb, conn: Connection) => {
   const ethTable = r.db('eth').table('contractCalls')
