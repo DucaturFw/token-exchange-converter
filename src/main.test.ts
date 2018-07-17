@@ -1,7 +1,7 @@
 import main from './main'
 
-describe('ETH transaction converter to universal Ducat', () => {
-  test('should be get changes from eth table and insert into ducat exchanges table correctly', () => {
+describe('ETH/EOS transaction converter to universal Ducat', () => {
+  test('should be get changes from eth and eos tables and insert into ducat exchanges table correctly', () => {
     const r = {
       db: jest.fn().mockImplementation(() => r),
       table: jest.fn().mockImplementation(() => r),
@@ -20,16 +20,15 @@ describe('ETH transaction converter to universal Ducat', () => {
 
     main(web3, r, r)
 
-    expect(r.db).toHaveBeenCalledTimes(2)
+    expect(r.db).toHaveBeenCalledTimes(3)
     expect(r.db).toHaveBeenCalledWith('eth')
+    expect(r.db).toHaveBeenCalledWith('eos')
     expect(r.db).toHaveBeenCalledWith('ducat')
-    expect(r.table).toHaveBeenCalledTimes(2)
-    expect(r.table).toHaveBeenCalledWith('contractCalls')
-    expect(r.table).toHaveBeenCalledWith('exchanges')
-    expect(r.table).toHaveBeenCalledWith('exchanges')
+    expect(r.table).toHaveBeenCalledTimes(3)
 
-    expect(r.run).toHaveBeenCalledTimes(1)
+    expect(r.run).toHaveBeenCalledTimes(2)
 
+    // ETH
     const changesCb = r.run.mock.calls[0][1]
     const eachCb = jest.fn()
     changesCb(null, { each: eachCb })
@@ -55,6 +54,32 @@ describe('ETH transaction converter to universal Ducat', () => {
       tx: '0x00'
     })
 
-    expect(r.run).toHaveBeenCalledTimes(2)
+    expect(r.run).toHaveBeenCalledTimes(3)
+
+    // EOS
+    const eosChangesCb = r.run.mock.calls[1][1]
+    const eosEachCb = jest.fn()
+    eosChangesCb(null, { each: eosEachCb })
+
+    const eosEachCalled = eosEachCb.mock.calls[0][0]
+    eosEachCalled(null, {
+      amount: '1.0000 DUCAT',
+      blockchain: 'eth',
+      from: 'ducone',
+      to: '0x000000000',
+      txid: '0x1'
+    })
+
+    expect(r.insert).toHaveBeenCalledTimes(2)
+    expect(r.insert).toHaveBeenLastCalledWith({
+      amount: 1,
+      blockchainFrom: 'eos',
+      blockchainTo: 'eth',
+      from: 'ducone',
+      to: '0x000000000',
+      tx: '0x1'
+    })
+
+    expect(r.run).toHaveBeenCalledTimes(4)
   })
 })

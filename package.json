@@ -23,8 +23,7 @@
   },
   "scripts": {
     "test": "jest",
-    "eth": "yarn ts-node ./eth",
-    "eth:live": "nodemon --exec ./node_modules/.bin/ts-node -- ./eth"
+    "start": "yarn ts-node ./src"
   },
   "jest": {
     "moduleFileExtensions": [
