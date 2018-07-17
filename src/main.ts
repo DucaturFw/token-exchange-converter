@@ -67,22 +67,26 @@ const onEthExchangeEvent = (conn: Connection, ethTable: Table) =>
   (cb: (result: IEthereumExchangeTransfer) => void): void =>
     ethTable
       .filter({ event: 'BlockchainExchange' })
-      .changes()
+      .changes({ includeInitial: true } as any)
       .map(v => v('new_val'))
       .run(conn, callbackCursorItems(cb))
 
 const onEosExchangeEvent = (conn: Connection, eosTable: Table) =>
   (cb: (result: IEOSTransfer) => void): void =>
     eosTable
-      .changes()
+      .changes({ includeInitial: true } as any)
       .map(v => v('new_val'))
       .run(conn, callbackCursorItems(cb))
 
 const insertDucatTransaction = (conn: Connection, ducatTable: Table) =>
-  (data: ICrossExchangeTransfer): Promise<WriteResult> =>
+  (data: ICrossExchangeTransfer): Promise<[ ICrossExchangeTransfer, WriteResult ]> =>
     ducatTable
       .insert(data)
       .run(conn)
+      .then(result => [ data, result ] as [ ICrossExchangeTransfer, WriteResult ])
+
+const logResult = ([ data, result ]: [ ICrossExchangeTransfer, WriteResult ]) =>
+  console.log(result.first_error || `${data.blockchainFrom} > ${data.blockchainTo} tx ${data.tx} was saved`)
 
 export default (web3: Web3, r: typeof rethinkdb, conn: Connection) => {
   const ethTable = r.db('eth').table('contractCalls')
@@ -93,6 +97,8 @@ export default (web3: Web3, r: typeof rethinkdb, conn: Connection) => {
   const pushToDucat = insertDucatTransaction(conn, ducatTable)
   const convertEthEvent = eventEthConverter(web3)
 
-  onEthExchange(event => pushToDucat(convertEthEvent(event)))
-  onEosExchange(event => pushToDucat(convertEosEvent(event)))
+  onEthExchange(event => pushToDucat(convertEthEvent(event)).then(logResult))
+  onEosExchange(event => pushToDucat(convertEosEvent(event)).then(logResult))
+
+  console.log('Converter started')
 }
