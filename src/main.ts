@@ -11,10 +11,12 @@ interface IEthereumExchangeTransfer {
   }
 }
 
-interface IEOSTransfer {
+interface IEosExchangeTransfer {
   amount: string
   blockchain: string
   from: string
+  id: number
+  pubtime: string
   to: string
   txid: string
 }
@@ -49,13 +51,13 @@ const eventEthConverter = (web3: Web3) => (event: IEthereumExchangeTransfer): IC
   tx: event.transactionHash
 } as ICrossExchangeTransfer)
 
-const convertEosEvent = (event: IEOSTransfer): ICrossExchangeTransfer => ({
+const convertEosEvent = (event: IEosExchangeTransfer): ICrossExchangeTransfer => ({
   amount: parseFloat(event.amount.split(' ')[0]),
   blockchainFrom: 'eos',
-  blockchainTo: event.blockchain,
+  blockchainTo: event.blockchain.toLowerCase(),
   from: event.from,
   to: event.to,
-  tx: event.txid
+  tx: event.id.toString()
 } as ICrossExchangeTransfer)
 
 const callbackCursorItems = (cb: Function) =>
@@ -72,7 +74,7 @@ const onEthExchangeEvent = (conn: Connection, ethTable: Table) =>
       .run(conn, callbackCursorItems(cb))
 
 const onEosExchangeEvent = (conn: Connection, eosTable: Table) =>
-  (cb: (result: IEOSTransfer) => void): void =>
+  (cb: (result: IEosExchangeTransfer) => void): void =>
     eosTable
       .changes({ includeInitial: true } as any)
       .map(v => v('new_val'))
