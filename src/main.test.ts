@@ -6,7 +6,7 @@ describe('ETH/EOS transaction converter to universal Ducat', () => {
       db: jest.fn().mockImplementation(() => r),
       table: jest.fn().mockImplementation(() => r),
       insert: jest.fn().mockImplementation(() => r),
-      run: jest.fn().mockImplementation(() => r),
+      run: jest.fn().mockImplementation(() => Promise.resolve(r)),
       filter: jest.fn().mockImplementation(() => r),
       changes: jest.fn().mockImplementation(() => r),
       map: jest.fn().mockImplementation(() => r),
@@ -67,7 +67,7 @@ describe('ETH/EOS transaction converter to universal Ducat', () => {
       blockchain: 'eth',
       from: 'ducone',
       to: '0x000000000',
-      txid: '0x1'
+      id: '0x1'
     })
 
     expect(r.insert).toHaveBeenCalledTimes(2)
